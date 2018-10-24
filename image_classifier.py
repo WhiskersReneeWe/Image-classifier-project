@@ -52,6 +52,7 @@ for e in range(epochs):
         # Forward and backward pass
 
         output = vgg(image)
+        output = torch.exp(output).data
         _, preds = torch.max(output, 1)
         loss = criterion(output, label)
         loss.backward()
@@ -73,7 +74,8 @@ with torch.no_grad():
         images, labels = data
         images = images.to('cuda')
         labels = labels.to('cuda')
-        outputs = model(images)
+        outputs = vgg(images)
+        outputs = torch.exp(outputs) 
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
