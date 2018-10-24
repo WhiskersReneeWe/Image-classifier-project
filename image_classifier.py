@@ -173,17 +173,60 @@ for e in range(epochs):
             running_loss = 0
 
 # Testing the accuracy using test data
-correct = 0
-total = 0
-with torch.no_grad():
-    for data in dataloaders['test_loader']:
-        images, labels = data
+# TODO: Do validation on the test set
+def validation(model, testloader, criterion):
+    test_loss = 0
+    accuracy = 0
+    for images, labels in testloader:
+        
+        images.resize_(images.shape[0], 784)
+        output = model.forward(images)
+        test_loss += criterion(output, labels).item()
+
+        # ps = torch.exp(output)
+        ps = torch.exp(output).data
+        equality = (labels.data == ps.max(dim=1)[1])
+        accuracy += equality.type(torch.FloatTensor).mean()
+    
+    return test_loss, accuracy
+
+epochs = 3
+steps = 0
+running_loss = 0
+print_every = 40
+for e in range(epochs):
+    vgg.train()
+    for images, labels in dataloaders['train_loader']:
         images = images.to('cuda')
         labels = labels.to('cuda')
-        outputs = vgg(images)
-        outputs = torch.exp(outputs) 
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))  
+        steps += 1
+        
+        # Flatten images into a 784 long vector
+        # images.resize_(images.size()[0], 784)
+        
+        optimizer.zero_grad()
+        
+        output = vgg.forward(images)
+        loss = criterion(output, labels)
+        loss.backward()
+        optimizer.step()
+        
+        running_loss += loss.item()
+        
+        if steps % print_every == 0:
+            # Make sure network is in eval mode for inference
+            vgg.eval()
+            
+            # Turn off gradients for validation, saves memory and computations
+            with torch.no_grad():
+                test_loss, accuracy = validation(vgg, dataloaders['test_loader'], criterion)
+                
+            print("Epoch: {}/{}.. ".format(e+1, epochs),
+                  "Training Loss: {:.3f}.. ".format(running_loss/print_every),
+                  "Test Loss: {:.3f}.. ".format(test_loss/len(dataloaders['test_loader'])),
+                  "Test Accuracy: {:.3f}".format(accuracy/len(dataloaders['test_loader'])))
+            
+            running_loss = 0
+            
+            # Make sure training is back on
+            vgg.train()
