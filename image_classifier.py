@@ -126,7 +126,9 @@ my_classifier = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                          nn.Linear(hidden_sizes[1], output_size),
                          nn.Softmax(dim=1))
 
-vgg.classifier = my_classifier    
+vgg.classifier = my_classifier  
+#Move this model to GPU
+vgg = vgg.cuda()
 
 
 # Step 3 - Train the classifier
