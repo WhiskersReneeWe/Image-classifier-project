@@ -144,6 +144,7 @@ steps = 0
 # change to cuda
 vgg.to('cuda')
 
+#Train the model
 for e in range(epochs):
     running_loss = 0
     for ii, (image, label) in enumerate(dataloaders['train_loader']):
@@ -158,7 +159,6 @@ for e in range(epochs):
         # Forward and backward pass
 
         output = vgg(image)
-        output = torch.exp(output).data
         _, preds = torch.max(output, 1)
         loss = criterion(output, label)
         loss.backward()
