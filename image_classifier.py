@@ -114,6 +114,7 @@ with active_session():
 
 # Step 2 - Define a new, untrained classifier. Here, I kept the input_size unchanged as the original model, and only changed the output
 # size because we have 102 classes in this project.
+# Can I change the hidden sizes when fine tuning the model?
 input_size = 25088
 hidden_sizes = [4096, 4096]
 output_size = 102
@@ -124,7 +125,7 @@ my_classifier = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                          nn.ReLU(),
                          Dropout(p = 0.5),
                          nn.Linear(hidden_sizes[1], output_size),
-                         nn.Softmax(dim=1))
+                         nn.LogSoftmax(dim=1))
 
 vgg.classifier = my_classifier  
 #Move this model to GPU
